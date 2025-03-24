@@ -109,31 +109,50 @@ start_processing() {
 # this function reads the local hard-verses file and randomly selects a verse
 select_random_hard_verse() {
   local VERSES_FILE="hard-verses.md"
-
   if [[ ! -f "$VERSES_FILE" ]]; then
     echo "Error: $VERSES_FILE not found!"
     exit 1
   fi
-
-  # Ensure correct line endings (fixes Windows-format files)
-  sed -i 's/\r$//' "$VERSES_FILE"
-
-  # Select a full verse block (ensuring it contains Book Chapter, Verse Number, and Text)
-  local verse_block
-  verse_block=$(grep -Pzo "(?s)^# .*?\n(?:###### ¶ .*?\n)+\".*?\"" "$VERSES_FILE" | shuf -z -n 1 | tr -d '\0')
-
-  # Debugging step: Print what was selected
+  
+  # Get total number of verse blocks in the file
+  local block_count=$(grep -c "^# " "$VERSES_FILE")
+  
+  if [[ $block_count -eq 0 ]]; then
+    echo "Error: No verse headers found in $VERSES_FILE"
+    exit 1
+  fi
+  
+  # Generate a random number between 1 and the block count
+  local random_block=$((1 + RANDOM % block_count))
+  
+  # Get the line number of the selected block header
+  local start_line=$(grep -n "^# " "$VERSES_FILE" | sed "${random_block}q;d" | cut -d: -f1)
+  
+  # Get the line number of the next block header, or EOF if it's the last block
+  local next_block=$((random_block + 1))
+  local end_line
+  
+  if [[ $next_block -le $block_count ]]; then
+    end_line=$(($(grep -n "^# " "$VERSES_FILE" | sed "${next_block}q;d" | cut -d: -f1) - 1))
+  else
+    end_line=$(wc -l < "$VERSES_FILE")
+  fi
+  
+  # Extract the verse block (3 lines: header, verse number, and quote)
+  local verse_block=$(head -n "$end_line" "$VERSES_FILE" | tail -n +$start_line | head -n 3)
+  
+  # Debugging step
   echo "DEBUG: Selected Block: $verse_block" >&2
-
+  
   # Ensure a valid block was selected
   if [[ -z "$verse_block" ]]; then
     echo "Error: No valid verse block selected."
     exit 1
   fi
-
+  
   # Assign full block to scripture variable
   scripture="$verse_block"
-
+  
   # Pass to existing formatting/output functions
   start_processing_with_hard
 }
