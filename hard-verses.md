@@ -36,4 +36,8 @@
 
 # Proverbs 18
 ###### ¶ 21
-"Death and life are in the power of the tongue. (NKJV)"
+"Death and life are in the power of the tongue... (NKJV)"
+
+# Proverbs 18
+###### ¶ 21
+"Death and life are in the power of the tongue, And those who love it will eat its fruit. (NKJV)"
