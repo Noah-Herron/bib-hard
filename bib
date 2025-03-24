@@ -94,7 +94,6 @@ get_args() {
 
 start_processing() {
   get_scripture
-  echo "$scripture"
   if [[ -n "${scripture}" ]]; then
     get_terminal_width
     get_hline
@@ -142,7 +141,7 @@ select_random_hard_verse() {
   local verse_block=$(head -n "$end_line" "$VERSES_FILE" | tail -n +$start_line | head -n 3)
   
   # Debugging step
-  echo "DEBUG: Selected Block: $verse_block" >&2
+  # echo "DEBUG: Selected Block: $verse_block" >&2
   
   # Ensure a valid block was selected
   if [[ -z "$verse_block" ]]; then
