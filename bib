@@ -113,32 +113,14 @@ select_random_hard_verse() {
     exit 1
   fi
   
-  # Get total number of verse blocks in the file
-  local block_count=$(grep -c "^# " "$VERSES_FILE")
+  # Find all line numbers where book headers start
+  local header_lines=$(grep -n "^# " "$VERSES_FILE" | cut -d: -f1)
   
-  if [[ $block_count -eq 0 ]]; then
-    echo "Error: No verse headers found in $VERSES_FILE"
-    exit 1
-  fi
+  # Pick a random header line
+  local start_line=$(echo "$header_lines" | shuf -n 1)
   
-  # Generate a random number between 1 and the block count
-  local random_block=$((1 + RANDOM % block_count))
-  
-  # Get the line number of the selected block header
-  local start_line=$(grep -n "^# " "$VERSES_FILE" | sed "${random_block}q;d" | cut -d: -f1)
-  
-  # Get the line number of the next block header, or EOF if it's the last block
-  local next_block=$((random_block + 1))
-  local end_line
-  
-  if [[ $next_block -le $block_count ]]; then
-    end_line=$(($(grep -n "^# " "$VERSES_FILE" | sed "${next_block}q;d" | cut -d: -f1) - 1))
-  else
-    end_line=$(wc -l < "$VERSES_FILE")
-  fi
-  
-  # Extract the verse block (3 lines: header, verse number, and quote)
-  local verse_block=$(head -n "$end_line" "$VERSES_FILE" | tail -n +$start_line | head -n 3)
+  # Extract exactly 3 lines starting from the header line
+  local verse_block=$(tail -n +"$start_line" "$VERSES_FILE" | head -n 3)
   
   # Debugging step
   # echo "DEBUG: Selected Block: $verse_block" >&2
